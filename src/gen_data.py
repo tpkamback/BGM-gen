@@ -206,6 +206,9 @@ def create_localizations(title, description, languages=None):
         }
     }
 
+    if False:
+        languages = ["EN-US", "JA"]
+
     # 各言語に翻訳されたタイトルと説明を取得
     translated_titles = transrate(title, languages, is_title=True)
     translated_descriptions = transrate(description, languages, is_title=False)

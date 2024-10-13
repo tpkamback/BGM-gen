@@ -17,22 +17,17 @@ def main():
     text_img_path = os.path.join(output_dir, "text_img_path.png")
     title_text = "Lofi x Classic"
  
-    logger.info(f"Fetching MP3 files from directory: {input_dir}")
     mp3_files, img_files, prompt = get_inputs_files(input_dir)
+    logger.info(f"Fetched MP3 files from directory: {input_dir}")
 
     title, description = get_discprt_from_gpt(prompt)
+    logger.info(f"Got title, description.")
 
-    if True: # all
-        localizations = create_localizations(title, description)
-    else:
-        languages = ["EN-US", "JA"]
-        localizations = create_localizations(title, description, languages)
-
-    merge_mp3(mp3_files, merged_audio_file)
-    logger.info(f"completed merge : {merged_audio_file}")
+    localizations = create_localizations(title, description)
+    logger.info(f"Created localizations.")
 
     logger.info(f"creating video ...")
-    create_video(img_files[0], merged_audio_file, video_output_file, text_img_path, thumbnail_output, title_text)
+    create_video(mp3_files, merged_audio_file, img_files[0], merged_audio_file, video_output_file, text_img_path, thumbnail_output, title_text)
     logger.info(f"created video : {video_output_file}")
 
     upload(title, description, video_output_file, thumbnail_output, localizations)
