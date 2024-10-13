@@ -3,9 +3,13 @@
 
 # folder
 input/*
-output/
-log/
-keys/
+!input/.gitkeep
+output/*
+!output/.gitkeep
+log/*
+!log/.gitkeep
+keys/*
+!keys/.gitkeep
 
 # python
 __pycache__/
