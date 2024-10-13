@@ -1,0 +1,15 @@
+# personal config
+.env
+
+# folder
+input/*
+output/
+log/
+keys/
+
+# python
+__pycache__/
+**/__pycache__/
+
+*.py[cod]
+*$py.class
