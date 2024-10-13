@@ -88,9 +88,9 @@ def compress_image(input_path, max_size_mb=20, quality=85):
 
     return input_path
 
-def create_video(mp3_files, merged_audio_file, image_file, audio_file, output_file, text_img_path, thumbnail_output, text="サムネの文字"):
-    logger.debug(f"Merging audio file: {merged_audio_file}")
-    merge_mp3(mp3_files, merged_audio_file)
+def create_video(mp3_files, audio_file, image_file, output_file, text_img_path, thumbnail_output, text="サムネの文字"):
+    logger.debug(f"Merging audio file: {audio_file}")
+    merge_mp3(mp3_files, audio_file)
 
     logger.debug(f"Loading audio file: {audio_file}")
     audio = AudioFileClip(audio_file)

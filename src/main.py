@@ -27,7 +27,7 @@ def main():
     logger.info(f"Created localizations.")
 
     logger.info(f"creating video ...")
-    create_video(mp3_files, merged_audio_file, img_files[0], merged_audio_file, video_output_file, text_img_path, thumbnail_output, title_text)
+    create_video(mp3_files, merged_audio_file, img_files[0], video_output_file, text_img_path, thumbnail_output, title_text)
     logger.info(f"created video : {video_output_file}")
 
     upload(title, description, video_output_file, thumbnail_output, localizations)
