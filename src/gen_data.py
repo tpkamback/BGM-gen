@@ -139,7 +139,7 @@ def image_gen_hugging_face(prompt):
     from diffusers import StableDiffusionPipeline
 
     # Hugging Faceのアクセストークン
-    access_token = "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"
+    access_token = ""
 
     # モデルの読み込み
     pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", 
