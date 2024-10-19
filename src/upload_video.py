@@ -53,8 +53,9 @@ def load_credentials() -> Any:
                 logging.error("トークンの更新に失敗しました。再認証が必要です。")
                 creds = None
         if not creds:
+            logging.warning("WSL/Docker環境未対応です。windowsで実行してください。")
             flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-            creds = flow.run_console()
+            creds = flow.run_local_server()
             logging.info("新しい認証トークンを取得しました。")
         
         # 認証情報を保存
