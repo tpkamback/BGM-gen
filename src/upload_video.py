@@ -14,8 +14,11 @@ from logger_config import setup_logger
 logger = setup_logger(__name__)
 
 # YouTube Data APIのスコープ
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
-
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    'https://www.googleapis.com/auth/youtube.force-ssl',
+    'https://www.googleapis.com/auth/youtube'
+]
 # 認証情報とトークンのパス
 TOKEN_PATH = "./keys/token.pickle"
 CLIENT_SECRETS_FILE = "./keys/client_secrets.json"
