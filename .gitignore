@@ -4,8 +4,8 @@
 # folder
 input/*
 !input/.gitkeep
-output/*
-!output/.gitkeep
+result/*
+!result/.gitkeep
 log/*
 !log/.gitkeep
 keys/*
