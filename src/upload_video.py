@@ -1,6 +1,5 @@
 import os
 import pickle
-import logging
 from typing import Dict, Any
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -45,26 +44,26 @@ def load_credentials() -> Any:
     if os.path.exists(TOKEN_PATH):
         with open(TOKEN_PATH, "rb") as token:
             creds = pickle.load(token)
-        logging.info("既存の認証トークンを読み込みました。")
+        logger.info("既存の認証トークンを読み込みました。")
     
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
-                logging.info("認証トークンを更新しました。")
+                logger.info("認証トークンを更新しました。")
             except RefreshError:
-                logging.error("トークンの更新に失敗しました。再認証が必要です。")
+                logger.error("トークンの更新に失敗しました。再認証が必要です。")
                 creds = None
         if not creds:
-            logging.warning("WSL/Docker環境未対応です。windowsで実行してください。")
+            logger.warning("WSL/Docker環境未対応です。windowsで実行してください。")
             flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
             creds = flow.run_local_server()
-            logging.info("新しい認証トークンを取得しました。")
+            logger.info("新しい認証トークンを取得しました。")
         
         # 認証情報を保存
         with open(TOKEN_PATH, "wb") as token:
             pickle.dump(creds, token)
-            logging.info("認証トークンを保存しました。")
+            logger.info("認証トークンを保存しました。")
     
     return creds
 
@@ -74,7 +73,7 @@ def get_authenticated_service() -> Any:
     """
     creds = load_credentials()
     youtube = build("youtube", "v3", credentials=creds)
-    logging.info("YouTubeサービスオブジェクトを作成しました。")
+    logger.info("YouTubeサービスオブジェクトを作成しました。")
     return youtube
 
 def upload_video(
@@ -124,10 +123,11 @@ def upload_video(
     try:
         response = request.execute()
         video_id = response['id']
-        logging.info(f"Video uploaded successfully: {video_id}")
+        logger.info(f"Video uploaded successfully: {video_id}")
+        logger.debug(f"{response=}")
         return video_id
     except Exception as e:
-        logging.error(f"動画のアップロード中にエラーが発生しました: {e}")
+        logger.error(f"動画のアップロード中にエラーが発生しました: {e}")
         raise
 
 def set_thumbnail(youtube: Any, video_id: str, thumbnail_path: str) -> None:
@@ -143,9 +143,9 @@ def set_thumbnail(youtube: Any, video_id: str, thumbnail_path: str) -> None:
             media_body=media
         )
         request.execute()
-        logging.info(f"Thumbnail set successfully for video: {video_id}")
+        logger.info(f"Thumbnail set successfully for video: {video_id}")
     except Exception as e:
-        logging.error(f"サムネイル設定中にエラーが発生しました: {e}")
+        logger.error(f"サムネイル設定中にエラーが発生しました: {e}")
         raise
 
 def upload(title, description, file_path, thumbnail_output, localizations):
@@ -174,4 +174,4 @@ def upload(title, description, file_path, thumbnail_output, localizations):
         set_thumbnail(youtube, video_id, thumbnail_output)
 
     except Exception as e:
-        logging.error(f"処理中にエラーが発生しました: {e}")
+        logger.error(f"処理中にエラーが発生しました: {e}")
