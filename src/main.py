@@ -8,11 +8,18 @@ from logger_config import setup_logger
 logger = setup_logger(__name__)
 
 def main():
-    input_dirs = ["./input", "./input2", "./input3", "./input4", "./input5"]
-    output_dirs = ["./output", "./output2", "./output3", "./output4", "./output5"]
-    for input_dir, output_dir in zip(input_dirs, output_dirs):
-        print(f"{input_dir=}")
-        print(f"{output_dir=}")
+    input_root_dir = "./input"
+    result_root_dir = "./result"
+    for folder_name in os.listdir(input_root_dir):
+        input_dir = os.path.join(input_root_dir, folder_name)
+        if not os.path.isdir(input_dir):
+            continue
+
+        output_dir = os.path.join(result_root_dir, folder_name)
+        os.makedirs(output_dir, exist_ok=True)
+
+        logger.info(f"{input_dir=}")
+        logger.info(f"{output_dir=}")
 
         merged_audio_file = os.path.join(output_dir, "merged_audio.mp3")
         video_output_file = os.path.join(output_dir, "output_video.mp4")
