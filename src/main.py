@@ -1,5 +1,4 @@
 import os
-import logging
 
 from gen_data import get_discprt_from_gpt, transrate, create_localizations
 from modify_video import get_inputs_files, merge_mp3, create_video

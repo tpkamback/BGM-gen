@@ -1,4 +1,3 @@
-import logging
 from pydub import AudioSegment
 import glob
 import os
