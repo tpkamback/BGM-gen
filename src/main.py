@@ -7,7 +7,7 @@ from logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
-USE_LOCALIZATION = False
+USE_LOCALIZATION = True
 
 def main():
     input_root_dir = "./input"
