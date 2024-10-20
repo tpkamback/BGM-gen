@@ -65,10 +65,10 @@ def create_text_image(text, image_file, text_img_path = "text_image.png" , max_f
     
     return text_img_path
 
-def compress_image(input_path, max_size_mb=20, quality=85):
+def compress_image(input_path, max_size_mb=2, quality=95):
     img = Image.open(input_path)
     orig_size = os.path.getsize(input_path) / BYTES_IN_MB  # MB単位に変換
-    print(f"Original size: {orig_size:.2f} MB")
+    logger.debug(f"Original size: {orig_size:.2f} MB")
     
     while orig_size > max_size_mb:
         # 入力ファイルを直接上書き保存
@@ -76,7 +76,7 @@ def compress_image(input_path, max_size_mb=20, quality=85):
         
         # 新しいファイルサイズを確認
         new_size = os.path.getsize(input_path) / BYTES_IN_MB
-        print(f"Compressed size: {new_size:.2f} MB with quality: {quality}")
+        logger.debug(f"Compressed size: {new_size:.2f} MB with quality: {quality}")
         
         # サイズが制限以下になったら終了
         if new_size <= max_size_mb:
@@ -118,10 +118,11 @@ def create_video(mp3_files, audio_file, image_file, output_file, text_img_path, 
     frame = video.get_frame(thumbnail_time)  # 特定の時間でフレームを取得
     thumbnail_image = Image.fromarray(frame)
     thumbnail_image.save(thumbnail_output)
-    max_size_mb = 20
+    max_size_mb = 2
+    
     if os.path.getsize(thumbnail_output) / BYTES_IN_MB > max_size_mb:
         logger.warning(f"Image file size exceeds {max_size_mb}MB. Compressing...")
-        thumbnail_output = compress_image(thumbnail_output)
+        thumbnail_output = compress_image(thumbnail_output, max_size_mb)
     
     logger.debug(f"Thumbnail saved to {thumbnail_output}")
     
