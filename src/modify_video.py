@@ -82,7 +82,12 @@ def merge_mp3(mp3_files, output_file):
     combined = AudioSegment.empty()
     for mp3_file in mp3_files:
         logger.info(f"Merging MP3 file: {mp3_file}")
-        audio = AudioSegment.from_mp3(mp3_file)
+        try:
+            audio = AudioSegment.from_mp3(mp3_file)
+        except Exception as e:
+            logger.warning(f"continue to next video because error occured! : {e=}")
+            continue
+
         combined += audio
 
     combined.export(output_file, format="mp3")
