@@ -62,7 +62,7 @@ def move_files(files, output_dir):
         move_file(files, output_dir)
 
 def get_thumbnail_files(directory):
-    png_files = glob.glob(os.path.join(directory, "*.png"))
+    png_files = glob.glob(os.path.join(directory, "*.[jp][pn]g"))
 
     ret = []
     for file in png_files:
