@@ -1,7 +1,7 @@
 import os
 
-from gen_data import get_discprt_from_gpt, transrate, create_localizations
-from modify_video import get_inputs_files, merge_mp3, create_video
+from gen_data import get_discprt_from_gpt, create_localizations
+from modify_video import get_mp3files_from_download, get_thumbnail_files, create_video, move_files
 from upload_video import upload
 from logger_config import setup_logger
 
@@ -10,27 +10,31 @@ logger = setup_logger(__name__)
 USE_LOCALIZATION = True
 
 def main():
-    input_root_dir = "./input"
+    input_dir = "/downloads"
+    thumbnail_dir = "/thumbnail"
     result_root_dir = "./result"
-    for folder_name in os.listdir(input_root_dir):
-        input_dir = os.path.join(input_root_dir, folder_name)
-        if not os.path.isdir(input_dir):
-            continue
 
-        output_dir = os.path.join(result_root_dir, folder_name)
+    grouped_files = get_mp3files_from_download(input_dir)
+    thumbnail_files = get_thumbnail_files(thumbnail_dir)
+
+    for i, (prompt, mp3_files) in enumerate(grouped_files.items()):
+
+        output_dir = os.path.join(result_root_dir, str(i))
         os.makedirs(output_dir, exist_ok=True)
+
+        thumbnail_file = thumbnail_files.pop(0)
 
         logger.info(f"{input_dir=}")
         logger.info(f"{output_dir=}")
+        logger.info(f"{prompt=}")
+        logger.debug(f"{mp3_files=}")
+        logger.debug(f"{thumbnail_file=}")
 
         merged_audio_file = os.path.join(output_dir, "merged_audio.mp3")
         video_output_file = os.path.join(output_dir, "output_video.mp4")
         thumbnail_output = os.path.join(output_dir, "thumbnail_output.png")
         text_img_path = os.path.join(output_dir, "text_img_path.png")
         title_text = "Lofi x Classic"
-
-        mp3_files, img_files, prompt = get_inputs_files(input_dir)
-        logger.info(f"Fetched MP3 files from directory: {input_dir}")
 
         title, description = get_discprt_from_gpt(prompt)
         logger.info(f"Got title, description.")
@@ -41,11 +45,15 @@ def main():
             logger.info(f"Created localizations.")
 
         logger.info(f"creating video ...")
-        create_video(mp3_files, merged_audio_file, img_files[0], video_output_file, text_img_path, thumbnail_output, title_text)
+        create_video(mp3_files, merged_audio_file, thumbnail_file, video_output_file, text_img_path, thumbnail_output, title_text)
         logger.info(f"created video : {video_output_file}")
 
         upload(title, description, video_output_file, thumbnail_output, localizations)
         logger.info(f"uploaded")
+
+        move_files(mp3_files, output_dir)
+        move_files(thumbnail_file, output_dir)
+        logger.info(f"file moved")
 
 if __name__ == "__main__":
     main()

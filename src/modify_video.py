@@ -2,9 +2,11 @@ from pydub import AudioSegment
 import glob
 import os
 import re
+import shutil
 
 from PIL import Image, ImageDraw, ImageFont
 from moviepy.editor import ImageClip, AudioFileClip, CompositeVideoClip
+from collections import defaultdict
 
 from logger_config import setup_logger
 
@@ -26,6 +28,55 @@ def get_inputs_files(directory):
     logger.info(f"{prompt=}")
 
     return mp3_files, img_files, prompt
+
+def get_mp3files_from_download(directory):
+    mp3_files = glob.glob(os.path.join(directory, "*.mp3"))
+
+    grouped_files = defaultdict(list)
+    for file in mp3_files:
+        filename = os.path.basename(file)
+        
+        if not filename.startswith("[suno]"):
+            continue
+
+        prompt = filename.replace("[suno]", "").replace(".mp3", "").strip()
+        prompt = re.sub(r'\s*\(\d+\)', '', prompt)
+
+        grouped_files[prompt].append(file)
+
+    logger.debug(f"MP3 files found: {grouped_files}")
+
+    return grouped_files
+
+def move_files(files, output_dir):
+    def move_file(file, output_dir):
+        logger.debug(f"file: {file}")
+        after_name = os.path.join(output_dir, os.path.basename(file))
+        shutil.move(file, after_name)
+        logger.debug(f"files renamed: {after_name}")
+
+    if isinstance(files, list):
+        for file in files:
+            move_file(file, output_dir)
+    else:
+        move_file(files, output_dir)
+
+def get_thumbnail_files(directory):
+    png_files = glob.glob(os.path.join(directory, "*.png"))
+
+    ret = []
+    for file in png_files:
+        filename = os.path.basename(file)
+        
+        if filename.startswith("used_"):
+            continue
+
+        ret.append(file)
+
+
+    logger.debug(f"thumbnail_file : {ret=}")
+
+    return ret
 
 def merge_mp3(mp3_files, output_file):
     combined = AudioSegment.empty()

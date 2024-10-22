@@ -7,6 +7,8 @@ DOCKER_OPTIONS="
     --rm
     --name $CONTAINER_NAME
     -v /mnt/d/work/BGM-gen/main:/app
+    -v /mnt/d/work/BGM-gen/thumbnail:/thumbnail
+    -v /mnt/c/Users/kamiy/Downloads:/downloads
     --env-file .env
     $IMAGE_NAME
 "
