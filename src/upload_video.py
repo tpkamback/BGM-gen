@@ -34,6 +34,7 @@ MADE_FOR_KIDS = False  # 子供向けではない
 TAGS = ["lofi", "chill music", "study beats"]
 LICENSE_TYPE = "youtube"  # 標準ライセンス
 EMBEDDABLE = True  # 埋め込み許可
+DEFAULUT_LANGUAGE = "en"
 
 def load_credentials() -> Any:
     """
@@ -87,6 +88,7 @@ def upload_video(
     tags: list,
     license_type: str,
     embeddable: bool,
+    default_laguage: str,
     localizations: Dict[str, Dict[str, str]] = None
 ) -> str:
     """
@@ -97,7 +99,8 @@ def upload_video(
             "title": title,
             "description": description,
             "tags": tags,
-            "categoryId": category_id
+            "categoryId": category_id,
+            'defaultLanguage': default_laguage,
         },
         "status": {
             "privacyStatus": privacy_status,
@@ -108,14 +111,14 @@ def upload_video(
     }
 
     if localizations:
-        body["snippet"]["localizations"] = localizations
+        body["localizations"] = localizations
 
     media = MediaFileUpload(file_path, chunksize=-1, resumable=True)
     logger.debug(f"{body=}")
     logger.debug(f"{media=}")
 
     request = youtube.videos().insert(
-        part="snippet,status",
+        part="snippet,status,localizations",
         body=body,
         media_body=media
     )
@@ -167,6 +170,7 @@ def upload(title, description, file_path, thumbnail_output, localizations):
             tags=TAGS,
             license_type=LICENSE_TYPE,
             embeddable=EMBEDDABLE,
+            default_laguage=DEFAULUT_LANGUAGE,
             localizations=localizations  # 多言語ローカライズを追加
         )
 
