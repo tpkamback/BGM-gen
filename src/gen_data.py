@@ -3,6 +3,7 @@ import json
 import requests
 import deepl
 
+from config import Config
 from logger_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -177,23 +178,8 @@ def transrate(text, languages=None, is_title=False):
     logger.debug(f"DEEPL_API_KEY : {auth_key}")
     translator = deepl.Translator(auth_key)
 
-    # DeepLの言語コードをYouTubeのlocalization言語コードに対応させるマッピング
-    deepl_to_youtube_lang_map = {
-        "EN-US": "en",  # American English -> YouTube English
-        "EN-GB": "en",  # British English -> YouTube English
-        "ES": "es",  # Spanish
-        "ZH": "zh-CN",  # Chinese Simplified
-        "AR": "ar",  # Arabic
-        "PT-PT": "pt",  # European Portuguese -> YouTube Portuguese
-        "PT-BR": "pt",  # Brazilian Portuguese -> YouTube Portuguese
-        "RU": "ru",  # Russian
-        "JA": "ja",  # Japanese
-        "DE": "de",  # German
-        "FR": "fr",  # French
-    }
-
     translations = {}
-    for deepl_code, youtube_code in deepl_to_youtube_lang_map.items():
+    for deepl_code, youtube_code in Config.deepl_to_youtube_lang_map.items():
         if (
             languages is None or deepl_code in languages
         ):  # languageがなければすべて実施 or 渡されたlanguagesに存在する言語のみ翻訳を行う
