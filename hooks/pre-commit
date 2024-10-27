@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo "Running tests..."
+
+# run pytest
+./docker/run.sh t
+
+if [ $? -ne 0 ]; then
+    echo "Tests failed! Commit aborted."
+    exit 1  # cancel commit because tests failed
+else
+    echo "Tests passed! Proceeding with commit."
+fi
