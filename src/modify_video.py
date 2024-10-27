@@ -150,7 +150,7 @@ def compress_image(input_path, max_size_mb=2, quality=95):
         if new_size <= max_size_mb:
             break
 
-        # 品質を下げる
+        # 品質低下
         quality = max(quality - 5, 10)
 
     return input_path
