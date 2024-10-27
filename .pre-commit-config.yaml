@@ -6,3 +6,9 @@ repos:
         entry: ./scripts/run_tests.sh
         language: script
         types: [python]
+    hooks:
+      - id: ruff
+        name: Run ruff
+        entry: ruff check
+        language: python
+        types: [python]

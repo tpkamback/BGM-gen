@@ -15,8 +15,8 @@ logger = setup_logger(__name__)
 # YouTube Data APIのスコープ
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
-    'https://www.googleapis.com/auth/youtube.force-ssl',
-    'https://www.googleapis.com/auth/youtube'
+    "https://www.googleapis.com/auth/youtube.force-ssl",
+    "https://www.googleapis.com/auth/youtube",
 ]
 # 認証情報とトークンのパス
 TOKEN_PATH = "./keys/token.pickle"
@@ -36,6 +36,7 @@ LICENSE_TYPE = "youtube"  # 標準ライセンス
 EMBEDDABLE = True  # 埋め込み許可
 DEFAULUT_LANGUAGE = "en"
 
+
 def load_credentials() -> Any:
     """
     トークンファイルから認証情報を読み込む。
@@ -46,7 +47,7 @@ def load_credentials() -> Any:
         with open(TOKEN_PATH, "rb") as token:
             creds = pickle.load(token)
         logger.info("既存の認証トークンを読み込みました。")
-    
+
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             try:
@@ -57,16 +58,19 @@ def load_credentials() -> Any:
                 creds = None
         if not creds:
             logger.warning("WSL/Docker環境未対応です。windowsで実行してください。")
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(
+                CLIENT_SECRETS_FILE, SCOPES
+            )
             creds = flow.run_local_server()
             logger.info("新しい認証トークンを取得しました。")
-        
+
         # 認証情報を保存
         with open(TOKEN_PATH, "wb") as token:
             pickle.dump(creds, token)
             logger.info("認証トークンを保存しました。")
-    
+
     return creds
+
 
 def get_authenticated_service() -> Any:
     """
@@ -76,6 +80,7 @@ def get_authenticated_service() -> Any:
     youtube = build("youtube", "v3", credentials=creds)
     logger.info("YouTubeサービスオブジェクトを作成しました。")
     return youtube
+
 
 def upload_video(
     youtube: Any,
@@ -89,7 +94,7 @@ def upload_video(
     license_type: str,
     embeddable: bool,
     default_laguage: str,
-    localizations: Dict[str, Dict[str, str]] = None
+    localizations: Dict[str, Dict[str, str]] = None,
 ) -> str:
     """
     YouTubeに動画をアップロードし、動画IDを返す。
@@ -100,14 +105,14 @@ def upload_video(
             "description": description,
             "tags": tags,
             "categoryId": category_id,
-            'defaultLanguage': default_laguage,
+            "defaultLanguage": default_laguage,
         },
         "status": {
             "privacyStatus": privacy_status,
             "selfDeclaredMadeForKids": made_for_kids,
             "license": license_type,
-            "embeddable": embeddable
-        }
+            "embeddable": embeddable,
+        },
     }
 
     if localizations:
@@ -118,20 +123,19 @@ def upload_video(
     logger.debug(f"{media=}")
 
     request = youtube.videos().insert(
-        part="snippet,status,localizations",
-        body=body,
-        media_body=media
+        part="snippet,status,localizations", body=body, media_body=media
     )
-    
+
     try:
         response = request.execute()
-        video_id = response['id']
+        video_id = response["id"]
         logger.info(f"Video uploaded successfully: {video_id}")
         logger.debug(f"{response=}")
         return video_id
     except Exception as e:
         logger.error(f"動画のアップロード中にエラーが発生しました: {e}")
         raise
+
 
 def set_thumbnail(youtube: Any, video_id: str, thumbnail_path: str) -> None:
     """
@@ -141,15 +145,13 @@ def set_thumbnail(youtube: Any, video_id: str, thumbnail_path: str) -> None:
 
     try:
         media = MediaFileUpload(thumbnail_path)
-        request = youtube.thumbnails().set(
-            videoId=video_id,
-            media_body=media
-        )
+        request = youtube.thumbnails().set(videoId=video_id, media_body=media)
         request.execute()
         logger.info(f"Thumbnail set successfully for video: {video_id}")
     except Exception as e:
         logger.error(f"サムネイル設定中にエラーが発生しました: {e}")
         raise
+
 
 def upload(title, description, file_path, thumbnail_output, localizations):
     """
@@ -171,7 +173,7 @@ def upload(title, description, file_path, thumbnail_output, localizations):
             license_type=LICENSE_TYPE,
             embeddable=EMBEDDABLE,
             default_laguage=DEFAULUT_LANGUAGE,
-            localizations=localizations  # 多言語ローカライズを追加
+            localizations=localizations,  # 多言語ローカライズを追加
         )
 
         # サムネイルの設定

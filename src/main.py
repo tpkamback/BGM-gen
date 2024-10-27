@@ -1,13 +1,19 @@
 import os
 
 from gen_data import get_discprt_from_gpt, create_localizations
-from modify_video import get_mp3files_from_download, get_thumbnail_files, create_video, move_files
+from modify_video import (
+    get_mp3files_from_download,
+    get_thumbnail_files,
+    create_video,
+    move_files,
+)
 from upload_video import upload
 from logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
 USE_LOCALIZATION = True
+
 
 def main():
     input_dir = "/downloads"
@@ -18,7 +24,6 @@ def main():
     thumbnail_files = get_thumbnail_files(thumbnail_dir)
 
     for i, (prompt, mp3_files) in enumerate(grouped_files.items()):
-
         output_dir = os.path.join(result_root_dir, str(i))
         os.makedirs(output_dir, exist_ok=True)
 
@@ -37,23 +42,32 @@ def main():
         title_text = "Lofi x Classic"
 
         title, description = get_discprt_from_gpt(prompt)
-        logger.info(f"Got title, description.")
+        logger.info("Got title, description.")
 
         localizations = None
         if USE_LOCALIZATION:
             localizations = create_localizations(title, description)
-            logger.info(f"Created localizations.")
+            logger.info("Created localizations.")
 
-        logger.info(f"creating video ...")
-        create_video(mp3_files, merged_audio_file, thumbnail_file, video_output_file, text_img_path, thumbnail_output, title_text)
+        logger.info("creating video ...")
+        create_video(
+            mp3_files,
+            merged_audio_file,
+            thumbnail_file,
+            video_output_file,
+            text_img_path,
+            thumbnail_output,
+            title_text,
+        )
         logger.info(f"created video : {video_output_file}")
 
         upload(title, description, video_output_file, thumbnail_output, localizations)
-        logger.info(f"uploaded")
+        logger.info("uploaded")
 
         move_files(mp3_files, output_dir)
         move_files(thumbnail_file, output_dir)
-        logger.info(f"file moved")
+        logger.info("file moved")
+
 
 if __name__ == "__main__":
     main()

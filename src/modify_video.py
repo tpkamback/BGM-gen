@@ -15,6 +15,7 @@ logger = setup_logger(__name__)
 # 1MBをバイト単位で表す定数
 BYTES_IN_MB = 1024 * 1024
 
+
 def get_inputs_files(directory):
     mp3_files = glob.glob(os.path.join(directory, "*.mp3"))
     img_files = glob.glob(os.path.join(directory, "*.[jp][pn]g"))
@@ -29,24 +30,26 @@ def get_inputs_files(directory):
 
     return mp3_files, img_files, prompt
 
+
 def get_mp3files_from_download(directory):
     mp3_files = glob.glob(os.path.join(directory, "*.mp3"))
 
     grouped_files = defaultdict(list)
     for file in mp3_files:
         filename = os.path.basename(file)
-        
+
         if not filename.startswith("[suno]"):
             continue
 
         prompt = filename.replace("[suno]", "").replace(".mp3", "").strip()
-        prompt = re.sub(r'\s*\(\d+\)', '', prompt)
+        prompt = re.sub(r"\s*\(\d+\)", "", prompt)
 
         grouped_files[prompt].append(file)
 
     logger.debug(f"MP3 files found: {grouped_files}")
 
     return grouped_files
+
 
 def move_files(files, output_dir):
     def move_file(file, output_dir):
@@ -61,22 +64,23 @@ def move_files(files, output_dir):
     else:
         move_file(files, output_dir)
 
+
 def get_thumbnail_files(directory):
     files = glob.glob(os.path.join(directory, "*.[jp][pn]g"))
 
     ret = []
     for file in files:
         filename = os.path.basename(file)
-        
+
         if filename.startswith("used_"):
             continue
 
         ret.append(file)
 
-
     logger.debug(f"thumbnail_file : {ret=}")
 
     return ret
+
 
 def merge_mp3(mp3_files, output_file):
     combined = AudioSegment.empty()
@@ -92,14 +96,21 @@ def merge_mp3(mp3_files, output_file):
 
     combined.export(output_file, format="mp3")
 
-def create_text_image(text, image_file, text_img_path = "text_image.png" , max_font_size=200, font_path="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"):
+
+def create_text_image(
+    text,
+    image_file,
+    text_img_path="text_image.png",
+    max_font_size=200,
+    font_path="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+):
     # 元の画像のサイズを取得
     size = Image.open(image_file).size
 
     # テキストが画像内に収まるまでフォントサイズを調整
     font_size = max_font_size
     while font_size > 10:  # 最小フォントサイズを10に制限
-        text_img = Image.new('RGBA', size, color=(0, 0, 0, 0))  # 透明な背景の画像
+        text_img = Image.new("RGBA", size, color=(0, 0, 0, 0))  # 透明な背景の画像
         draw = ImageDraw.Draw(text_img)
         font = ImageFont.truetype(font_path, font_size)
 
@@ -118,78 +129,90 @@ def create_text_image(text, image_file, text_img_path = "text_image.png" , max_f
 
     # テキスト画像を一時ファイルに保存
     text_img.save(text_img_path)
-    
+
     return text_img_path
+
 
 def compress_image(input_path, max_size_mb=2, quality=95):
     img = Image.open(input_path)
     orig_size = os.path.getsize(input_path) / BYTES_IN_MB  # MB単位に変換
     logger.debug(f"Original size: {orig_size:.2f} MB")
-    
+
     while orig_size > max_size_mb:
         # 入力ファイルを直接上書き保存
         img.save(input_path, "JPEG", quality=quality)
-        
+
         # 新しいファイルサイズを確認
         new_size = os.path.getsize(input_path) / BYTES_IN_MB
         logger.debug(f"Compressed size: {new_size:.2f} MB with quality: {quality}")
-        
+
         # サイズが制限以下になったら終了
         if new_size <= max_size_mb:
             break
-        
+
         # 品質を下げる
         quality = max(quality - 5, 10)
 
     return input_path
 
-def create_video(mp3_files, audio_file, image_file, output_file, text_img_path, thumbnail_output, text="サムネの文字"):
+
+def create_video(
+    mp3_files,
+    audio_file,
+    image_file,
+    output_file,
+    text_img_path,
+    thumbnail_output,
+    text="サムネの文字",
+):
     logger.debug(f"Merging audio file: {audio_file}")
     merge_mp3(mp3_files, audio_file)
 
     logger.debug(f"Loading audio file: {audio_file}")
     audio = AudioFileClip(audio_file)
-    
+
     logger.debug(f"Loading image file: {image_file}")
     image_clip = ImageClip(image_file).set_duration(audio.duration)
-    
+
     logger.debug("Adding fade-in effect to the image")
     image_clip = image_clip.set_audio(audio)  # 画像は最初から表示される
-    
+
     # Pillowを使ってテキスト画像を作成し、ImageClipとして読み込む
     logger.debug(f"Adding text: {text}")
     text_image_file = create_text_image(text, image_file, text_img_path)
-    
+
     # テキストクリップをフェードイン・フェードアウトで設定
     text_clip = ImageClip(text_image_file).set_duration(5).fadein(1).fadeout(1)
-    text_clip = text_clip.set_position('center')
-    
+    text_clip = text_clip.set_position("center")
+
     # 画像クリップとテキストクリップを合成
     logger.debug("Combining image and text into video")
     video = CompositeVideoClip([image_clip, text_clip])
-    
+
     # サムネイル用の画像を保存 (例えばフェードイン後1秒の時点)
-    thumbnail_time = 2  # フェードインが完了した後の1秒目あたりをサムネイルとしてキャプチャ
+    thumbnail_time = (
+        2  # フェードインが完了した後の1秒目あたりをサムネイルとしてキャプチャ
+    )
     logger.debug(f"Saving thumbnail at {thumbnail_time} seconds")
     frame = video.get_frame(thumbnail_time)  # 特定の時間でフレームを取得
     thumbnail_image = Image.fromarray(frame)
     thumbnail_image.save(thumbnail_output)
     max_size_mb = 2
-    
+
     if os.path.getsize(thumbnail_output) / BYTES_IN_MB > max_size_mb:
         logger.warning(f"Image file size exceeds {max_size_mb}MB. Compressing...")
         thumbnail_output = compress_image(thumbnail_output, max_size_mb)
-    
+
     logger.debug(f"Thumbnail saved to {thumbnail_output}")
-    
+
     logger.debug(f"Exporting video to {output_file}")
     video.write_videofile(
         output_file,
-        fps=10,                     # 静止画なのでFPSを低めに設定
-        codec='libx264',             # エンコーダ
-        preset='fast',               # エンコード速度を高速に
-        threads=4,                   # 並列処理でCPUリソースを最大限に活用
-        bitrate="500k"               # ビットレートを下げてエンコード速度を向上
+        fps=10,  # 静止画なのでFPSを低めに設定
+        codec="libx264",  # エンコーダ
+        preset="fast",  # エンコード速度を高速に
+        threads=4,  # 並列処理でCPUリソースを最大限に活用
+        bitrate="500k",  # ビットレートを下げてエンコード速度を向上
     )
 
     logger.debug(f"Video created: {output_file}")
