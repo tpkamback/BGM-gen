@@ -8,8 +8,15 @@ os.environ["TZ"] = "Asia/Tokyo"
 time.tzset()
 
 # set log file
-log_filename = datetime.now().strftime("%Y-%m%d-%H%M.log")
-log_file = os.path.join(os.path.dirname(__file__), f"../log/{log_filename}")
+
+now = datetime.now()
+log_dirname = now.strftime("%Y-%m-%d")  # folder name : YYYY-MM-DD
+log_filename = now.strftime("%H-%M-%S.log")  # file name : HH-MM-SS.log
+
+output_dir = os.path.join(os.path.dirname(__file__), f"../log/{log_dirname}")
+os.makedirs(output_dir, exist_ok=True)
+
+log_file = os.path.join(output_dir, log_filename)
 
 
 def setup_logger(name=__name__):
