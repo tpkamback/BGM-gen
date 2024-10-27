@@ -181,7 +181,7 @@ def upload(title, description, file_path, thumbnail_output, localizations):
 
     except Exception as e:
         logger.error(f"処理中にエラーが発生しました: {e}")
-
+        raise
 
 if __name__ == "__main__":
     load_credentials()
