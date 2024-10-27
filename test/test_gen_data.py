@@ -52,5 +52,36 @@ class TestGetDiscprtFromGpt(unittest.TestCase):
         self.assertEqual(title, "Lofi x Classic Ethereal Evening: A Serene Piano Nocturne")
         self.assertEqual(disc, "Immerse yourself in the tranquil sounds of this soothing piano nocturne. With its soft and flowing melodies, this piece creates a peaceful atmosphere perfect for relaxation, meditation, or winding down after a long day. Let the calm tones wash over you, providing a gentle escape into serenity.")
 
+
+class TestLocalizationFunctions(unittest.TestCase):
+
+    @patch('gen_data.deepl.Translator')
+    def test_create_localizations(self, MockTranslator):
+        mock_translator = MockTranslator.return_value
+        
+        mock_translator.translate_text.side_effect = [
+            MagicMock(text='Translated Title in Spanish'),  # JA
+            MagicMock(text='Translated Description in Spanish')  # JA
+        ]
+
+        title = "Original Title"
+        description = "Original Description"
+        languages = ["ES"]
+
+        result = create_localizations(title, description, languages)
+
+        expected_result = {
+            "en": {
+                "title": title,
+                "description": description
+            },
+            "es": {
+                "title": "Translated Title in Spanish",
+                "description": "Translated Description in Spanish"
+            }
+        }
+
+        self.assertEqual(result, expected_result)
+
 if __name__ == "__main__":
     unittest.main()
