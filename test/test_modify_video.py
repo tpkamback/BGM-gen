@@ -2,10 +2,8 @@ import os
 import hashlib
 import shutil
 import warnings
-import requests
 import pytest
 import unittest
-from unittest.mock import patch, MagicMock
 from modify_video import get_mp3files_from_download, get_thumbnail_files, create_video, move_files
 
 @pytest.mark.parametrize("directory, expected", [
