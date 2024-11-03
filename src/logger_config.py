@@ -1,11 +1,13 @@
 import logging
 import time
 import os
+import platform
 from datetime import datetime
 
 # set timezone
 os.environ["TZ"] = "Asia/Tokyo"
-time.tzset()
+if platform.system() != 'Windows':
+    time.tzset()
 
 # set log file
 
