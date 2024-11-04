@@ -40,19 +40,21 @@ DEFAULUT_LANGUAGE = "en"
 YOUTUBE_API_TITLE_OVER_CAR = 100
 YOUTUBE_API_DESCRIPTION_OVER_CAR = 5000
 
+
 class TokenError(Exception):
     """カスタム例外クラス：トークンに関連するエラーを処理します。"""
+
     pass
 
 
 def update_credentials():
-    if platform.system() != 'Windows':
-        logger.error(" WSL/Docker environment is not yet supported. please run on windows.")
+    if platform.system() != "Windows":
+        logger.error(
+            " WSL/Docker environment is not yet supported. please run on windows."
+        )
         exit(0)
 
-    flow = InstalledAppFlow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, SCOPES
-    )
+    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
     creds = flow.run_local_server()
     logger.info("got the new credentials token!")
 
@@ -62,8 +64,9 @@ def update_credentials():
 
     return creds
 
+
 def load_credentials() -> Any:
-    """ load credentials from existing token file."""
+    """load credentials from existing token file."""
     creds = None
     if os.path.exists(TOKEN_PATH):
         with open(TOKEN_PATH, "rb") as token:
@@ -111,16 +114,20 @@ def remove_char_limit_data(localizations):
         title = val["title"]
         description = val["description"]
         if len(title) >= YOUTUBE_API_TITLE_OVER_CAR:
-            logger.warning(f"localization has over char : num={len(val)} : {key} {val=}")
+            logger.warning(
+                f"localization has over char : num={len(val)} : {key} {val=}"
+            )
             continue
 
         if len(description) >= YOUTUBE_API_DESCRIPTION_OVER_CAR:
-            logger.warning(f"localization has over char : num={len(description)} : {key} {val=}")
+            logger.warning(
+                f"localization has over char : num={len(description)} : {key} {val=}"
+            )
             continue
 
         ret[key] = {
-            "title" : title,
-            "description" : description,
+            "title": title,
+            "description": description,
         }
 
     logger.debug(f"{ret=}")
@@ -151,6 +158,7 @@ def upload_video(
             "tags": tags,
             "categoryId": category_id,
             "defaultLanguage": default_laguage,
+            "defaultAudioLanguage": default_laguage,
         },
         "status": {
             "privacyStatus": privacy_status,
@@ -227,6 +235,7 @@ def upload(title, description, file_path, thumbnail_output, localizations):
     except Exception as e:
         logger.error(f"処理中にエラーが発生しました: {e}")
         raise
+
 
 if __name__ == "__main__":
     update_credentials()
