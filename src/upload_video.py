@@ -1,4 +1,5 @@
 import os
+import platform
 import pickle
 from typing import Dict, Any
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -39,16 +40,38 @@ DEFAULUT_LANGUAGE = "en"
 YOUTUBE_API_TITLE_OVER_CAR = 100
 YOUTUBE_API_DESCRIPTION_OVER_CAR = 5000
 
+class TokenError(Exception):
+    """カスタム例外クラス：トークンに関連するエラーを処理します。"""
+    pass
+
+
+def update_credentials():
+    if platform.system() != 'Windows':
+        logger.error(" WSL/Docker environment is not yet supported. please run on windows.")
+        exit(0)
+
+    flow = InstalledAppFlow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE, SCOPES
+    )
+    creds = flow.run_local_server()
+    logger.info("got the new credentials token!")
+
+    with open(TOKEN_PATH, "wb") as token:
+        pickle.dump(creds, token)
+        logger.info("saved credentials token.")
+
+    return creds
+
 def load_credentials() -> Any:
-    """
-    トークンファイルから認証情報を読み込む。
-    存在しない場合や無効な場合は再認証を行う。
-    """
+    """ load credentials from existing token file."""
     creds = None
     if os.path.exists(TOKEN_PATH):
         with open(TOKEN_PATH, "rb") as token:
             creds = pickle.load(token)
         logger.info("既存の認証トークンを読み込みました。")
+    else:
+        logger.error("認証トークンが見つかりません。再認証が必要です。")
+        raise TokenError("認証トークンが見つかりません。")
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -58,19 +81,7 @@ def load_credentials() -> Any:
             except RefreshError:
                 logger.error("トークンの更新に失敗しました。再認証が必要です。")
                 creds = None
-        if not creds:
-            logger.warning("WSL/Docker環境未対応です。windowsで実行してください。")
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CLIENT_SECRETS_FILE, SCOPES
-            )
-            creds = flow.run_local_server()
-            logger.info("新しい認証トークンを取得しました。")
-
-        # 認証情報を保存
-        with open(TOKEN_PATH, "wb") as token:
-            pickle.dump(creds, token)
-            logger.info("認証トークンを保存しました。")
-
+                raise TokenError("トークンの更新に失敗しました。再認証が必要です。")
     return creds
 
 
@@ -218,4 +229,4 @@ def upload(title, description, file_path, thumbnail_output, localizations):
         raise
 
 if __name__ == "__main__":
-    load_credentials()
+    update_credentials()

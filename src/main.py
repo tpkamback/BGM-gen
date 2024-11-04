@@ -7,7 +7,7 @@ from modify_video import (
     create_video,
     move_files,
 )
-from upload_video import upload
+from upload_video import upload, load_credentials
 from logger_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -19,6 +19,9 @@ def main():
     input_dir = "/downloads"
     thumbnail_dir = "/thumbnail"
     result_root_dir = "./result"
+
+    # check if credentials is not expired.
+    load_credentials()
 
     grouped_files = get_mp3files_from_download(input_dir)
     thumbnail_files = get_thumbnail_files(thumbnail_dir)
