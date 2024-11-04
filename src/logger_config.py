@@ -6,7 +6,7 @@ from datetime import datetime
 
 # set timezone
 os.environ["TZ"] = "Asia/Tokyo"
-if platform.system() != 'Windows':
+if platform.system() != "Windows":
     time.tzset()
 
 # set log file
