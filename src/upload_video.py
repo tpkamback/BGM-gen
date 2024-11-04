@@ -36,6 +36,8 @@ LICENSE_TYPE = "youtube"  # 標準ライセンス
 EMBEDDABLE = True  # 埋め込み許可
 DEFAULUT_LANGUAGE = "en"
 
+YOUTUBE_API_TITLE_OVER_CAR = 100
+YOUTUBE_API_DESCRIPTION_OVER_CAR = 5000
 
 def load_credentials() -> Any:
     """
@@ -82,6 +84,38 @@ def get_authenticated_service() -> Any:
     return youtube
 
 
+def remove_char_limit_data(localizations):
+    """Delete localizations that exceed the character limit."""
+    logger.debug(f"{localizations=}")
+
+    ret = {}
+    for key, val in localizations.items():
+        if "title" not in val:
+            logger.warning(f"localization doesn't include title : {key} {val=}")
+            continue
+        if "description" not in val:
+            logger.warning(f"localization doesn't include description : {key} {val=}")
+            continue
+
+        title = val["title"]
+        description = val["description"]
+        if len(title) >= YOUTUBE_API_TITLE_OVER_CAR:
+            logger.warning(f"localization has over char : num={len(val)} : {key} {val=}")
+            continue
+
+        if len(description) >= YOUTUBE_API_DESCRIPTION_OVER_CAR:
+            logger.warning(f"localization has over char : num={len(description)} : {key} {val=}")
+            continue
+
+        ret[key] = {
+            "title" : title,
+            "description" : description,
+        }
+
+    logger.debug(f"{ret=}")
+    return ret
+
+
 def upload_video(
     youtube: Any,
     file_path: str,
@@ -116,7 +150,7 @@ def upload_video(
     }
 
     if localizations:
-        body["localizations"] = localizations
+        body["localizations"] = remove_char_limit_data(localizations)
 
     media = MediaFileUpload(file_path, chunksize=-1, resumable=True)
     logger.debug(f"{body=}")
