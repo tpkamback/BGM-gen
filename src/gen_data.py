@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+import time
 import deepl
 
 from config import Config
@@ -37,7 +38,7 @@ def sample(headers):
     logger.info(f"{data=}")
 
 
-def get_discprt_from_gpt(prompt):
+def get_discprt_from_gpt(prompt, max_retries=10, wait_time_sec=60):
     api_key = os.getenv("AIML_API_KEY")
     logger.debug(f"AIML_API_KEY : {api_key=}")
 
@@ -45,59 +46,65 @@ def get_discprt_from_gpt(prompt):
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
+    url = "https://api.aimlapi.com/chat/completions"
 
-    response = requests.post(
-        url="https://api.aimlapi.com/chat/completions",
-        headers=headers,
-        data=json.dumps(
-            {
-                "model": "gpt-4o",
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": f"Generate an appropriate Youtube title and a summary for the audio generated in the prompt below. The format should be title=, disc=. {prompt}",
-                    },
-                ],
-                "max_tokens": 512,
-                "stream": False,
-            }
-        ),
-    )
+    def requests_post(request, prompt, max_tokens=512):
+        logger.debug(f"{request=}")
+        return requests.post(
+            url=url,
+            headers=headers,
+            data=json.dumps(
+                {
+                    "model": "gpt-4o",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": f"{request} : {prompt}",
+                        },
+                    ],
+                    "max_tokens": max_tokens,
+                    "stream": False,
+                }
+            ),
+        )
 
-    try:
-        response.raise_for_status()
-        data = response.json()
-        logger.debug(f"response : {data=}")
+    def retries(response):
+        for attempt in range(max_retries):
+            try:
+                response.raise_for_status()
+                data = response.json()
+                logger.debug(f"response : {data=}")
+                return data["choices"][0]["message"]["content"]
+            except Exception as e:
+                logger.warning(f"Attempt {attempt + 1} failed: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(wait_time_sec)
+                else:
+                    logger.error("Max retries reached. Request failed.")
+                    return None
 
-        content = data["choices"][0]["message"]["content"]
+    head = "Generate an appropriate Youtube "
+    tail = " for the audio generated in the prompt below."
 
-        # Check if 'title=' and 'disc=' are present
-        if "title=" not in content or "disc=" not in content:
-            raise ValueError(
-                "Both 'title=' and 'disc=' must be present in the content."
-            )
+    request = head + "title" + tail
+    response = requests_post(request, prompt, max_tokens=80)
+    title = retries(response)
 
-        # Extract title and disc values
-        title_start = content.find("title=") + len("title=")
-        disc_start = content.find("disc=")
-
-        title = content[title_start:disc_start].strip().strip('"')
-        disc = content[disc_start + len("disc=") :].strip().strip('"')
-    except requests.exceptions.HTTPError as http_err:
-        logger.error(f"HTTP error occurred: {http_err}")
-
-        # dummy
-        title = "Ethereal Evening: A Serene Piano Nocturne"
-        disc = "Immerse yourself in the tranquil sounds of this soothing piano nocturne. With its soft and flowing melodies, this piece creates a peaceful atmosphere perfect for relaxation, meditation, or winding down after a long day. Let the calm tones wash over you, providing a gentle escape into serenity."
+    request = head + "description" + tail
+    response = requests_post(request, prompt)
+    description = retries(response)
 
     # modify title
     logger.debug(f"original  : {title=}")
-    title = "Lofi x Classic " + title
+    if title is not None:
+        title = Config.title + " : " + title
+    if description is not None:
+        description = Config.description + " : " + description
 
     logger.info(f"generated : {title=}")
-    logger.info(f"generated : {disc=}")
+    logger.info(f"generated : {description=}")
 
-    return title, disc
+    return title, description
 
 
 def bgm_gen_v1(headers):

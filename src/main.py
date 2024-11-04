@@ -1,5 +1,6 @@
 import os
 
+from config import Config
 from gen_data import get_discprt_from_gpt, create_localizations
 from modify_video import (
     get_mp3files_from_download,
@@ -42,9 +43,13 @@ def main():
         video_output_file = os.path.join(output_dir, "output_video.mp4")
         thumbnail_output = os.path.join(output_dir, "thumbnail_output.png")
         text_img_path = os.path.join(output_dir, "text_img_path.png")
-        title_text = "Lofi x Classic"
+        title_text = Config.title
 
         title, description = get_discprt_from_gpt(prompt)
+        if title is None or description is None:
+            logger.warning(f"skip due to something happend : {title=} {description=}")
+            continue
+
         logger.info("Got title, description.")
 
         localizations = None
