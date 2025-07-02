@@ -13,7 +13,8 @@ from logger_config import setup_logger
 
 logger = setup_logger(__name__)
 
-USE_LOCALIZATION = True
+USE_LOCALIZATION = False
+USE_TITLE_DESC_GEN = False
 
 
 def main():
@@ -45,12 +46,19 @@ def main():
         text_img_path = os.path.join(output_dir, "text_img_path.png")
         title_text = Config.title
 
-        title, description = get_discprt_from_gpt(prompt)
-        if title is None or description is None:
-            logger.warning(f"skip due to something happend : {title=} {description=}")
-            continue
+        if USE_TITLE_DESC_GEN:
+            title, description = get_discprt_from_gpt(prompt)
+            if title is None or description is None:
+                logger.warning(
+                    f"skip due to something happend : {title=} {description=}"
+                )
+                continue
 
-        logger.info("Got title, description.")
+            logger.info("Got title, description.")
+        else:
+            title = "test title"
+            description = "test desc"
+            logger.info(f"hand made title {title=}, {description=}.")
 
         localizations = None
         if USE_LOCALIZATION:
